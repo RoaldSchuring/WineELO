@@ -9,23 +9,36 @@ from bs4 import BeautifulSoup
 
 import json
 import time
+import random
+
+import pickle
+
 
 options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--incognito')
 
+driver = webdriver.Chrome(options=options)
+
+driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+    "source":
+        "const newProto = navigator.__proto__;"
+        "delete newProto.webdriver;"
+        "navigator.__proto__ = newProto;"
+})
+
 
 # click the 'show more' button
 
 
-def expand_show_more(driver):
+def expand_show_more():
     show_more_button_visible = True
     while show_more_button_visible:
         show_more_button = driver.find_elements_by_class_name(
             'show-more')[-1].find_element_by_class_name('btn')
         if 'hidden' not in show_more_button.get_attribute('class'):
             driver.execute_script("arguments[0].click();", show_more_button)
-            time.sleep(1)
+            time.sleep(random.uniform(0, 5))
         else:
             show_more_button_visible = False
 
@@ -116,28 +129,56 @@ def grab_user_id(soup):
     return user_id
 
 
-def main():
-
-    driver = webdriver.Chrome(options=options)
-    driver.get('https://www.vivino.com/users/roald.schuring')
-    expand_show_more(driver)
+def mine_review_data(user_link):
+    user_link = 'https://www.vivino.com/' + user_link
+    driver.get(user_link)
+    expand_show_more()
 
     page_source = driver.page_source
     soup = BeautifulSoup(page_source, 'lxml')
 
     reviews_selector = soup.find_all('div', class_='user-activity-item')
+    if len(reviews_selector) >= 1:
+        all_review_info = []
+        for r in reviews_selector:
+            review_info = grab_review_data(r)
+            all_review_info.append(review_info)
 
-    all_review_info = []
-    for r in reviews_selector:
-        review_info = grab_review_data(r)
-        all_review_info.append(review_info)
+        user_id = grab_user_id(soup)
 
-    user_id = grab_user_id(soup)
+        # write the scraped data to a json file
+        filename = 'raw_data/' + str(user_id) + '.json'
+        with open(filename, 'w') as outfile:
+            json.dump(all_review_info, outfile)
 
-    # write the scraped data to a json file
-    filename = 'raw_data/' + str(user_id) + '.json'
-    with open(filename, 'w') as outfile:
-        json.dump(all_review_info, outfile)
+
+def main():
+
+    # driver.get('https://www.vivino.com/users/martijn-kra/rankings')
+
+    # time.sleep(30)
+
+    # for _ in range(100):
+    #     show_more_button = driver.find_elements_by_class_name(
+    #         'text-block.text-center.country-rankings-show-more.semi')[-1]
+    #     driver.execute_script("arguments[0].click();", show_more_button)
+    #     time.sleep(random.uniform(0, 5))
+
+    # page_source = driver.page_source
+    # soup = BeautifulSoup(page_source, 'lxml')
+
+    # user_links = soup.find_all('span', class_='user-name header-smaller bold')
+    # user_links = [u.find('a', class_='link-muted')['href'] for u in user_links]
+
+    # with open("user_links.json", "w") as f:
+    #     json.dump(user_links, f, indent=2)
+
+    with open("user_links.json", 'r') as f:
+        user_links = json.load(f)
+
+    for u in user_links[41:500]:
+        mine_review_data(u)
+        time.sleep(random.uniform(10, 30))
 
     driver.close()
 
