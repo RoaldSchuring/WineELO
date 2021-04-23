@@ -3,7 +3,7 @@ import numpy as np
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException
 
 from bs4 import BeautifulSoup
 
@@ -12,26 +12,47 @@ import time
 import random
 
 import pickle
+from selenium.webdriver.common.proxy import Proxy, ProxyType
 
 
-options = webdriver.ChromeOptions()
-options.add_argument('--ignore-certificate-errors')
-options.add_argument('--incognito')
+def set_driver_settings(proxy=False):
+    options = webdriver.ChromeOptions()
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--incognito')
 
-driver = webdriver.Chrome(options=options)
+    return options
 
-driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
-    "source":
-        "const newProto = navigator.__proto__;"
-        "delete newProto.webdriver;"
-        "navigator.__proto__ = newProto;"
-})
+
+def get_driver(proxy=False):
+    if proxy:
+
+        with open('MZLdoi0oSU.txt', 'r') as p:
+            proxy_list = p.readlines()
+
+        successful_proxy = False
+        while successful_proxy is False:
+            try:
+
+                proxy = random.choice(proxy_list)
+                driver_options = set_driver_settings()
+                driver_options.add_argument('--proxy-server=http://%s' % proxy)
+
+                driver = webdriver.Chrome(options=driver_options)
+                driver.get('https://www.vivino.com/')
+
+                successful_proxy = True
+                return driver
+
+            except WebDriverException:
+                time.sleep(5)
+    else:
+        driver = webdriver.Chrome(options=set_driver_settings())
+        return driver
 
 
 # click the 'show more' button
 
-
-def expand_show_more():
+def expand_show_more(driver):
     show_more_button_visible = True
     while show_more_button_visible:
         show_more_button = driver.find_elements_by_class_name(
@@ -129,10 +150,12 @@ def grab_user_id(soup):
     return user_id
 
 
-def mine_review_data(user_link):
+def mine_review_data(user_link, driver):
     user_link = 'https://www.vivino.com/' + user_link
+
     driver.get(user_link)
-    expand_show_more()
+    time.sleep(5)
+    expand_show_more(driver)
 
     page_source = driver.page_source
     soup = BeautifulSoup(page_source, 'lxml')
@@ -153,7 +176,7 @@ def mine_review_data(user_link):
 
 
 def main():
-
+    driver = get_driver(proxy=False)
     # driver.get('https://www.vivino.com/users/martijn-kra/rankings')
 
     # time.sleep(30)
@@ -177,7 +200,7 @@ def main():
         user_links = json.load(f)
 
     for u in user_links[41:500]:
-        mine_review_data(u)
+        mine_review_data(u, driver)
         time.sleep(random.uniform(10, 30))
 
     driver.close()
