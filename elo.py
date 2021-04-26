@@ -143,6 +143,45 @@ class Player:
                 zb = min([z for z in Sz if z > M])
                 f_zb = self.special_rating_objective(zb)
 
+                if abs(f_zb - f_M) < self.epsilon_special_rating:
+                    M = zb
+                    f_M = f_zb
+                else:
+                    M_star = M - f_M * ((zb - M) / (f_zb - f_M))
+                    if M_star > zb:
+                        M = zb
+                        continue
+                    elif M < M_star <= zb:
+                        M = M_star
+                        f_M = self.special_rating_objective(M_star)
+                        continue
+                    else:
+                        step_3_satisfied = True
+                        return M, f_M
+
+        def special_rating_step_4(self, f_M, opponent_ratings, M, Sz):
+            if abs(f_M) < -self.epsilon_special_rating:
+                p = len([o for o in opponent_ratings if abs(M - o) <= 400])
+            if abs(M - self.adjusted_initial_rating) <= 400:
+                p += 1
+            if p > 0:
+                pass
+            elif p == 0:
+                za = max([s for s in Sz if s < M])
+                zb = min([s for s in Sz if s > M])
+                if za <= self.player.initial_rating <= zb:
+                    M = self.player.initial_rating
+                elif self.player.initial_rating < za:
+                    M = za
+                elif self.player.initial_rating > zb:
+                    M = zb
+                else:
+                    raise Exception(
+                        'M is outside the range of expected values.')
+
+            M = min(2700, M)
+            return M
+
         def compute_special_rating(self):
 
             tournament_games = len(self.tournament_results)
@@ -161,10 +200,10 @@ class Player:
                 M, f_M = self.special_rating_step_2(M, f_M, Sz)
 
             if f_M < -self.epsilon_special_rating:
-                M = self.special_rating_step_3(M, f_M, Sz)
+                M, f_M = self.special_rating_step_3(M, f_M, Sz)
 
             if abs(f_M) < -self.epsilon_special_rating:
-                M = self.special_rating_step_4(opponent_ratings, M, Sz)
+                M = self.special_rating_step_4(f_M, opponent_ratings, M, Sz)
                 M = min(2700, M)
 
                 return M
