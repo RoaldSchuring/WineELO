@@ -199,7 +199,7 @@ def main():
     with open("user_links.json", 'r') as f:
         user_links = json.load(f)
 
-    for u in user_links[160:500]:
+    for u in user_links[172:500]:
         mine_review_data(u, driver)
         time.sleep(random.uniform(10, 30))
 
