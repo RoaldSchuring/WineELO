@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import json
 import time
 import random
+import os
 
 import pickle
 from selenium.webdriver.common.proxy import Proxy, ProxyType
@@ -142,6 +143,7 @@ def grab_review_data(review):
 
 
 def grab_user_id(soup):
+
     # grab the user name and ID
     user_info = soup.find(
         'div', class_='user-header__image-container__wrapper').find('div')['data-react-props']
@@ -155,24 +157,30 @@ def mine_review_data(user_link, driver):
 
     driver.get(user_link)
     time.sleep(5)
-    expand_show_more(driver)
 
     page_source = driver.page_source
     soup = BeautifulSoup(page_source, 'lxml')
 
-    reviews_selector = soup.find_all('div', class_='user-activity-item')
-    if len(reviews_selector) >= 1:
-        all_review_info = []
-        for r in reviews_selector:
-            review_info = grab_review_data(r)
-            all_review_info.append(review_info)
+    user_id = grab_user_id(soup)
+    existing_jsons = os.listdir('raw_data/')
+    existing_user_files = [o.split('.')[0] for o in existing_jsons]
 
-        user_id = grab_user_id(soup)
+    if str(user_id) in existing_user_files:
+        print('already scraped this person')
+        pass
+    else:
+        expand_show_more(driver)
+        reviews_selector = soup.find_all('div', class_='user-activity-item')
+        if len(reviews_selector) >= 1:
+            all_review_info = []
+            for r in reviews_selector:
+                review_info = grab_review_data(r)
+                all_review_info.append(review_info)
 
-        # write the scraped data to a json file
-        filename = 'raw_data/' + str(user_id) + '.json'
-        with open(filename, 'w') as outfile:
-            json.dump(all_review_info, outfile)
+            # write the scraped data to a json file
+            filename = 'raw_data/' + str(user_id) + '.json'
+            with open(filename, 'w') as outfile:
+                json.dump(all_review_info, outfile)
 
 
 def main():
@@ -199,7 +207,8 @@ def main():
     with open("user_links.json", 'r') as f:
         user_links = json.load(f)
 
-    for u in user_links[249:500]:
+    unique_user_links = list(set(user_links))
+    for u in unique_user_links[851:]:
         mine_review_data(u, driver)
         time.sleep(random.uniform(10, 30))
 
