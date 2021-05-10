@@ -19,7 +19,7 @@ from selenium.webdriver.common.proxy import Proxy, ProxyType
 def set_driver_settings(proxy=False):
     options = webdriver.ChromeOptions()
     options.add_argument('--ignore-certificate-errors')
-    options.add_argument('--incognito')
+    # options.add_argument('--incognito')
 
     return options
 
@@ -185,11 +185,12 @@ def mine_review_data(user_link, driver):
 
 def main():
     driver = get_driver(proxy=False)
-    # driver.get('https://www.vivino.com/users/martijn-kra/rankings')
+    driver.get('https://www.vivino.com/users/roald.schuring/rankings')
 
     # time.sleep(30)
+    # # use this time to log in manually - the list of all user links is not visible if not logged in
 
-    # for _ in range(100):
+    # for _ in range(1000):
     #     show_more_button = driver.find_elements_by_class_name(
     #         'text-block.text-center.country-rankings-show-more.semi')[-1]
     #     driver.execute_script("arguments[0].click();", show_more_button)
@@ -208,7 +209,7 @@ def main():
         user_links = json.load(f)
 
     unique_user_links = list(set(user_links))
-    for u in unique_user_links[851:]:
+    for u in unique_user_links[400:]:
         mine_review_data(u, driver)
         time.sleep(random.uniform(10, 30))
 

@@ -83,8 +83,8 @@ def clean_wine_reviews(review_df):
     review_df['vintage'].replace({'': np.nan}, inplace=True)
     review_df.dropna(subset=['vintage'], axis=0, inplace=True)
 
-    just_reviews = review_df[['wine_id', 'reviewer',
-                              'vintage', 'rating', 'final_review_date']]
+    just_reviews = review_df[['wine_id',
+                              'reviewer', 'rating', 'final_review_date']]
     return just_reviews
 
 
@@ -146,10 +146,10 @@ def run_tournaments(review_df, score_lookup_table):
             players = []
             unique_players = list(set(review_df_slice.index))
 
-            for u in unique_players:
+            for up in unique_players:
                 rating, tournament_number, nr_games_played, nr_wins, nr_losses = player_info_lookup(
-                    u, score_lookup_table)
-                p = uscf_elo.Player(u, rating, nr_games_played,
+                    up, score_lookup_table)
+                p = uscf_elo.Player(up, rating, nr_games_played,
                                     nr_wins, nr_losses, tournament_number)
                 players.append(p)
 
@@ -165,7 +165,8 @@ def run_tournaments(review_df, score_lookup_table):
                 try:
                     updated_scores = tournament.run_tournament()
                     updated_scores_with_reviewer = [
-                        v.append(u) for u in updated_scores]
+                        v + [u] for v in updated_scores]
+
                     score_lookup_entry_table = pd.DataFrame(updated_scores_with_reviewer, columns=[
                                                             'wine_id', 'tournament_date', 'tournament_number', 'nr_games_played', 'nr_wins', 'nr_draws', 'nr_losses', 'elo_rating', 'reviewer'])
                     score_lookup_table = score_lookup_table.append(
