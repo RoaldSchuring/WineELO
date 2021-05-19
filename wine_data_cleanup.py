@@ -163,7 +163,7 @@ def run_tournaments(review_df, score_lookup_table):
                 players=players, tournament_results=tournament_results, tournament_date=r)
             if tournament.valid_tournament:
                 try:
-                    updated_scores = tournament.run_tournament()
+                    updated_scores = tournament.run()
                     updated_scores_with_reviewer = [
                         v + [u] for v in updated_scores]
 

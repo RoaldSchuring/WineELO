@@ -170,6 +170,8 @@ def mine_review_data(user_link, driver):
         pass
     else:
         expand_show_more(driver)
+        page_source = driver.page_source
+        soup = BeautifulSoup(page_source, 'lxml')
         reviews_selector = soup.find_all('div', class_='user-activity-item')
         if len(reviews_selector) >= 1:
             all_review_info = []
@@ -185,7 +187,7 @@ def mine_review_data(user_link, driver):
 
 def main():
     driver = get_driver(proxy=False)
-    driver.get('https://www.vivino.com/users/roald.schuring/rankings')
+    # driver.get('https://www.vivino.com/users/roald.schuring/rankings')
 
     # time.sleep(30)
     # # use this time to log in manually - the list of all user links is not visible if not logged in
@@ -209,9 +211,9 @@ def main():
         user_links = json.load(f)
 
     unique_user_links = list(set(user_links))
-    for u in unique_user_links[400:]:
+    for u in unique_user_links[2600:]:
         mine_review_data(u, driver)
-        time.sleep(random.uniform(10, 30))
+        time.sleep(random.uniform(0, 10))
 
     driver.close()
 
