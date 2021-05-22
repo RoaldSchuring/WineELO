@@ -19,36 +19,13 @@ from selenium.webdriver.common.proxy import Proxy, ProxyType
 def set_driver_settings(proxy=False):
     options = webdriver.ChromeOptions()
     options.add_argument('--ignore-certificate-errors')
-    # options.add_argument('--incognito')
 
     return options
 
 
 def get_driver(proxy=False):
-    if proxy:
-
-        with open('MZLdoi0oSU.txt', 'r') as p:
-            proxy_list = p.readlines()
-
-        successful_proxy = False
-        while successful_proxy is False:
-            try:
-
-                proxy = random.choice(proxy_list)
-                driver_options = set_driver_settings()
-                driver_options.add_argument('--proxy-server=http://%s' % proxy)
-
-                driver = webdriver.Chrome(options=driver_options)
-                driver.get('https://www.vivino.com/')
-
-                successful_proxy = True
-                return driver
-
-            except WebDriverException:
-                time.sleep(5)
-    else:
-        driver = webdriver.Chrome(options=set_driver_settings())
-        return driver
+    driver = webdriver.Chrome(options=set_driver_settings())
+    return driver
 
 
 # click the 'show more' button
@@ -187,31 +164,31 @@ def mine_review_data(user_link, driver):
 
 def main():
     driver = get_driver(proxy=False)
-    # driver.get('https://www.vivino.com/users/roald.schuring/rankings')
+    driver.get('https://www.vivino.com/users/roald.schuring/rankings')
 
-    # time.sleep(30)
-    # # use this time to log in manually - the list of all user links is not visible if not logged in
+    time.sleep(30)
+    # use this time to log in manually - the list of all user links is not visible if not logged in
 
-    # for _ in range(1000):
-    #     show_more_button = driver.find_elements_by_class_name(
-    #         'text-block.text-center.country-rankings-show-more.semi')[-1]
-    #     driver.execute_script("arguments[0].click();", show_more_button)
-    #     time.sleep(random.uniform(0, 5))
+    for _ in range(1000):
+        show_more_button = driver.find_elements_by_class_name(
+            'text-block.text-center.country-rankings-show-more.semi')[-1]
+        driver.execute_script("arguments[0].click();", show_more_button)
+        time.sleep(random.uniform(0, 5))
 
-    # page_source = driver.page_source
-    # soup = BeautifulSoup(page_source, 'lxml')
+    page_source = driver.page_source
+    soup = BeautifulSoup(page_source, 'lxml')
 
-    # user_links = soup.find_all('span', class_='user-name header-smaller bold')
-    # user_links = [u.find('a', class_='link-muted')['href'] for u in user_links]
+    user_links = soup.find_all('span', class_='user-name header-smaller bold')
+    user_links = [u.find('a', class_='link-muted')['href'] for u in user_links]
 
-    # with open("user_links.json", "w") as f:
-    #     json.dump(user_links, f, indent=2)
+    with open("user_links.json", "w") as f:
+        json.dump(user_links, f, indent=2)
 
     with open("user_links.json", 'r') as f:
         user_links = json.load(f)
 
     unique_user_links = list(set(user_links))
-    for u in unique_user_links[2600:]:
+    for u in unique_user_links[:2500]:
         mine_review_data(u, driver)
         time.sleep(random.uniform(0, 10))
 
