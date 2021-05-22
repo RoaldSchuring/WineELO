@@ -1,0 +1,7 @@
+beautifulsoup4==4.9.3
+bs4==0.0.1
+chessratings==0.0.1
+pandas==1.2.4
+numpy==1.20.2
+selenium==3.141.0
+matplotlib==3.4.1

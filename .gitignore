@@ -1,3 +1,4 @@
 /raw_data
 all_results.csv
 user_links.json
+**/__pycache__
